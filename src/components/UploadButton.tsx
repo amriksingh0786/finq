@@ -7,10 +7,25 @@ import { Button } from "./ui/button";
 import Dropzone from "react-dropzone";
 import { Cloud, File } from "lucide-react";
 import { Progress } from "./ui/progress";
+import { useUploadThing } from "@/lib/uploadThing";
+import { useToast } from "./ui/use-toast";
+import { ro } from "date-fns/locale";
+import { trpc } from "@/app/_trpc/client";
+import { useRouter } from "next/navigation"
 const UploadDropZone = () => {
     const [isUploading, setIsUploading] = useState(true);
     const [uploadProgress, setUploadProgress] = useState(0);
-
+    const { startUpload } = useUploadThing("pdfUploader");
+    const { toast } = useToast();
+    const router = useRouter()
+    const { mutate: startPolling } = trpc.getFile.useMutation({
+        onSuccess: (file) => {
+            console.log(file.id)
+            router.push(`/dashboard/${file.id}`)
+        },
+        retry: true,
+        retryDelay: 500
+    })
     const startSimulatedProgress = () => {
         setIsUploading(true);
         setUploadProgress(0);
@@ -31,10 +46,33 @@ const UploadDropZone = () => {
             multiple={false}
             onDrop={async (acceptedFile) => {
                 const progressInterval = startSimulatedProgress();
-                await new Promise((resolve) => setTimeout(resolve, 2000));
-                
+
+                //  handle file upload here
+                const res = await startUpload(acceptedFile);
+
+                if (!res) {
+                    return toast({
+                        title: 'Something went wrong',
+                        description: 'Please try again',
+                        variant: 'destructive'
+                    })
+                }
+
+                const [fileResponse] = res;
+
+                const key = fileResponse.key;
+
+                if (!key) {
+                    return toast({
+                        title: 'Something went wrong',
+                        description: 'Please try again',
+                        variant: 'destructive'
+                    })
+                }
+
                 clearInterval(progressInterval);
                 setUploadProgress(100);
+                startPolling({ key })
             }}>
             {({ getRootProps, getInputProps, acceptedFiles }) => (
                 <div {...getRootProps()}
@@ -64,6 +102,9 @@ const UploadDropZone = () => {
                                     <Progress value={uploadProgress} className="h-1 w-full bg-zinc-200" />
                                 </div>
                             ) : null}
+
+                            <input {...getInputProps()} type="file" id="dropzone-file" className="hidden" />
+
                         </label>
                     </div>
                 </div>
