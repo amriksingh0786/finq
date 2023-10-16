@@ -14,22 +14,21 @@ const PdfFullscreen = ({ fileUrl }: PdfFullScreenProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const { toast } = useToast();
     const [numPages, setNumPages] = useState<number>();
-    const [currPage, setCurrPage] = useState<number>(1);
     const { width, ref } = useResizeDetector();
     return (
         <Dialog
             open={isOpen}
             onOpenChange={(v) => {
-                if (!v) setIsOpen(v);
+                if (!v) { setIsOpen(v) };
             }}
         >
             <DialogTrigger onClick={() => setIsOpen(true)} asChild>
-                <Button  variant="ghost" aria-label="fullscreen" className="gap-1.5">
+                <Button variant="ghost" aria-label="fullscreen" className="gap-1.5">
                     <Expand className="h-4 w-4" />
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-w-7xl w-full">
-                <SimpleBar autoHide={false} className="'max-h-[calc(100vh-10rem)] mt-6">
+                <SimpleBar autoHide={false} className="max-h-[calc(100vh-10rem)] mt-6">
                     <div ref={ref}>
                         <Document
                             loading={

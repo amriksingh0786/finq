@@ -1,5 +1,11 @@
 "use client";
-import { ChevronDown, ChevronUp, Loader2, RotateCw, Search } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  RotateCw,
+  Search,
+} from "lucide-react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -11,9 +17,14 @@ import { Input } from "./ui/input";
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
-import { zodResolver } from '@hookform/resolvers/zod'
+import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
-import { DropdownMenu, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuContent } from "./ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+} from "./ui/dropdown-menu";
 import SimpleBar from "simplebar-react";
 import PdfFullscreen from "./PdfFullscreen";
 import { set } from "date-fns";
@@ -27,29 +38,32 @@ const PdfRenderer = ({ url }: PdfRenderedProps) => {
   const { width, ref } = useResizeDetector();
   const [scale, setScale] = useState<number>(1);
   const [rotate, setRotate] = useState<number>(0);
-  const CustomPageValidator = z.object({
-    page: z.string().refine((num) =>
-      Number(num) > 0 && Number(num) <= numPages!
-    )
-  })
+  const [renderedScale, setRenderedScale] = useState<number | null>(null);
+  const isLoading = renderedScale !== scale;
 
-  type TCustomePageValidator = z.infer<typeof CustomPageValidator>
+  const CustomPageValidator = z.object({
+    page: z
+      .string()
+      .refine((num) => Number(num) > 0 && Number(num) <= numPages!),
+  });
+
+  type TCustomePageValidator = z.infer<typeof CustomPageValidator>;
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
-    setValue
+    setValue,
   } = useForm<TCustomePageValidator>({
     defaultValues: {
       page: "1",
     },
-    resolver: zodResolver(CustomPageValidator)
+    resolver: zodResolver(CustomPageValidator),
   });
 
-  const handlePageSubmit = ({ page, }: TCustomePageValidator) => {
-    setCurrPage(Number(page))
-  }
+  const handlePageSubmit = ({ page }: TCustomePageValidator) => {
+    setCurrPage(Number(page));
+  };
   return (
     <div className="w-full bg-white rounded-md shadow flex flex-col items-center">
       <div className="flex h-14 w-full border-b border-zinc-200 items-center justify-between p-2">
@@ -58,7 +72,7 @@ const PdfRenderer = ({ url }: PdfRenderedProps) => {
             disabled={currPage <= 1}
             onClick={() => {
               setCurrPage((prev) => (prev - 1 > 1 ? prev - 1 : prev));
-              setValue("page", String(currPage - 1))
+              setValue("page", String(currPage - 1));
             }}
             aria-label="previous page"
             variant="ghost"
@@ -67,12 +81,19 @@ const PdfRenderer = ({ url }: PdfRenderedProps) => {
           </Button>
 
           <div className="flex items-center gap-1 5">
-            <Input {...register("page")} className={cn('w-12 h-8', errors.page && "focus-visible:ring-red-500")} onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                console.log("enter")
-                handleSubmit(handlePageSubmit)();
-              }
-            }} />
+            <Input
+              {...register("page")}
+              className={cn(
+                "w-12 h-8",
+                errors.page && "focus-visible:ring-red-500"
+              )}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  console.log("enter");
+                  handleSubmit(handlePageSubmit)();
+                }
+              }}
+            />
             <p className="text-zinc-700 text-sm space-x-1">
               <span>/</span>
               <span>{numPages ?? "x"}</span>
@@ -85,7 +106,7 @@ const PdfRenderer = ({ url }: PdfRenderedProps) => {
               setCurrPage((prev) =>
                 prev + 1 > numPages! ? numPages! : prev + 1
               );
-              setValue("page", String(currPage + 1))
+              setValue("page", String(currPage + 1));
             }}
             aria-label="previous page"
             variant="ghost"
@@ -93,10 +114,10 @@ const PdfRenderer = ({ url }: PdfRenderedProps) => {
             <ChevronUp className="h-4 w-4" />
           </Button>
         </div>
-        <div className="space-x-2" >
+        <div className="space-x-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className='gap-1.5' aria-label="Zoom" variant='ghost'>
+              <Button className="gap-1.5" aria-label="Zoom" variant="ghost">
                 <Search className="h-4 w-4" />
                 {scale * 100}% <ChevronDown className="h-3 w-3 opacity-50" />
               </Button>
@@ -117,12 +138,15 @@ const PdfRenderer = ({ url }: PdfRenderedProps) => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button variant='ghost' aria-label="rotate 90 degrees" onClick={() => setRotate((prev) => prev + 90)}>
+          <Button
+            variant="ghost"
+            aria-label="rotate 90 degrees"
+            onClick={() => setRotate((prev) => prev + 90)}
+          >
             <RotateCw className="h-4 w-4" />
           </Button>
-          <PdfFullscreen fileUrl={url}/>
+          <PdfFullscreen fileUrl={url} />
         </div>
-
       </div>
 
       <div className="flex-1 w-full max-h-screen">
@@ -145,7 +169,30 @@ const PdfRenderer = ({ url }: PdfRenderedProps) => {
               file={url}
               className="max-h-full"
             >
-              <Page pageNumber={currPage} width={width ? width : 1} scale={scale} rotate={rotate} />
+              {isLoading && renderedScale ? (
+                <Page
+                  pageNumber={currPage}
+                  width={width ? width : 1}
+                  scale={scale}
+                  rotate={rotate}
+                  key={"@" + renderedScale}
+                />
+              ) : null}
+
+              <Page
+                className={cn(isLoading ? "hidden" : "")}
+                pageNumber={currPage}
+                width={width ? width : 1}
+                scale={scale}
+                rotate={rotate}
+                key={"@" + scale}
+                loading={
+                  <div className="flex justify-center">
+                    <Loader2 className="my-24 h-6 w-6 animate-spin" />
+                  </div>
+                }
+                onRenderSuccess={() => setRenderedScale(scale)}
+              />
             </Document>
           </div>
         </SimpleBar>
