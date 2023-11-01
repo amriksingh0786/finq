@@ -2,12 +2,11 @@ import { db } from "@/db";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
-import { pineconeIndex } from "@/lib/pinecone";
+import { getPineconeClient } from "@/lib/pinecone";
 import { OpenAIEmbeddings } from "langchain/embeddings/openai";
 import { PineconeStore } from "langchain/vectorstores/pinecone";
 const f = createUploadthing();
 
-const auth = (req: Request) => ({ id: "fakeId" }); // Fake auth function
 
 export const ourFileRouter = {
   pdfUploader: f({ pdf: { maxFileSize: "4MB" } })
@@ -35,7 +34,6 @@ export const ourFileRouter = {
         const respone = await fetch(
           `https://uploadthing-prod.s3.us-west-2.amazonaws.com/${file.key}`
         );
-   
 
         const blob = await respone.blob();
 
@@ -46,16 +44,19 @@ export const ourFileRouter = {
         const pageAmt = pageLevelDocs.length;
 
         //vecotrize and index entire doc
+
+        const pinecone = await getPineconeClient();
+        const pineconeIndex = pinecone.Index('finq')
         const embeddings = new OpenAIEmbeddings({
           openAIApiKey: process.env.OPENAI_API_KEY,
         });
 
-        const index = await pineconeIndex();
-
+        //disable ts for now
         await PineconeStore.fromDocuments(pageLevelDocs, embeddings, {
-          pineconeIndex: index,
-          namespace: createdFile.id,
-        });
+          // @ts-ignore
+          pineconeIndex,
+/*           // namespace: createdFile.id,
+ */         });
 
         await db.file.update({
           where: { id: createdFile.id },
@@ -64,12 +65,13 @@ export const ourFileRouter = {
           },
         });
       } catch (err) {
+        console.log("ERROR", err);
         await db.file.update({
           where: { id: createdFile.id },
           data: {
             uploadStatus: "FAILED",
           },
-        })
+        });
       }
     }),
 } satisfies FileRouter;

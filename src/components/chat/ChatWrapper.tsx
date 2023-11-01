@@ -6,6 +6,7 @@ import Messages from "./Messages";
 import { ChevronLeft, Loader2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { buttonVariants } from "../ui/button";
+import { ChatContextProvider } from "./ChatContext";
 interface ChatWrapperProps {
     fileId: string;
 }
@@ -28,7 +29,7 @@ const ChatWrapper = ({ fileId }: ChatWrapperProps) => {
                         <h3 className="font-semibold text-xl">Loading....</h3>
                         <p className="text-zinc-500 text-sm">
                             We&apos;re preparing your file
-                        </p>px
+                        </p>
                     </div>
                 </div>
                 <ChatInput isDisabled />
@@ -50,6 +51,7 @@ const ChatWrapper = ({ fileId }: ChatWrapperProps) => {
         );
 
     if (data?.status === "FAILED") {
+        console.log("inside FAILED",data);
         return (
             <div className="relative min-h-full bg-zinc-50 flex divide-y divide-zinc-200 flex-col justify-between gap-2">
                 <div className="flex-1 justify-between flex flex-col mb-28">
@@ -65,12 +67,14 @@ const ChatWrapper = ({ fileId }: ChatWrapperProps) => {
         )
     }
     return (
+        <ChatContextProvider fileId={fileId}>
         <div className="relative min-h-full bg-zinc-50 flex divide-y divide-zinc-200 flex-col justify-between gap-2">
             <div className="flex-1 justify-between flex flex-col mb-28">
-                <Messages />
+                <Messages fileId={fileId}/>
             </div>
-            <ChatInput />
+            <ChatInput isDisabled={false} />
         </div>
+        </ChatContextProvider>
     );
 };
 
