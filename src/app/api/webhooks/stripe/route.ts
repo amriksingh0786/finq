@@ -10,6 +10,7 @@ export async function POST(request: Request) {
   let event: Stripe.Event;
 
   try {
+    console.log("inside try of webhook", body);
     event = stripe.webhooks.constructEvent(
       body,
       signature,
@@ -25,32 +26,40 @@ export async function POST(request: Request) {
   const session = event.data.object as Stripe.Checkout.Session;
 
   if (!session?.metadata?.userId) {
+    console.log("No user id stripe");
     return new Response(null, {
       status: 200,
     });
   }
 
   if (event.type === "checkout.session.completed") {
+    console.log("checkout.session.completed", session);
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string
     );
 
-    await db.user.update({
-      where: {
-        id: session.metadata.userId,
-      },
-      data: {
-        stripeSubscriptionId: subscription.id,
-        stripeCustomerId: subscription.customer as string,
-        stripePriceId: subscription.items.data[0]?.price.id,
-        stripeCurrentPeriodEnd: new Date(
-          subscription.current_period_end * 1000
-        ),
-      },
-    });
+    try {
+      console.log("inside try of checkout.session.completed");
+      await db.user.update({
+        where: {
+          id: session.metadata.userId,
+        },
+        data: {
+          stripeSubscriptionId: subscription.id,
+          stripeCustomerId: subscription.customer as string,
+          stripePriceId: subscription.items.data[0]?.price.id,
+          stripeCurrentPeriodEnd: new Date(
+            subscription.current_period_end * 1000
+          ),
+        },
+      });
+    } catch (err) {
+      console.log("error in checkout.session.completed", err);
+    }
   }
 
   if (event.type === "invoice.payment_succeeded") {
+    console.log("invoice.payment_succeeded", session);
     // Retrieve the subscription details from Stripe.
     const subscription = await stripe.subscriptions.retrieve(
       session.subscription as string

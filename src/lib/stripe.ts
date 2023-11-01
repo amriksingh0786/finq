@@ -4,7 +4,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import Stripe from "stripe";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-  apiVersion: "2023-08-16",
+  apiVersion: "2023-10-16",
   typescript: true,
 });
 
@@ -13,6 +13,7 @@ export async function getUserSubscriptionPlan() {
   const user = getUser();
 
   if (!user.id) {
+    console.log("No user id stripe")
     return {
       ...PLANS[0],
       isSubscribed: false,
@@ -28,6 +29,7 @@ export async function getUserSubscriptionPlan() {
   });
 
   if (!dbUser) {
+    console.log("No db user stripe")
     return {
       ...PLANS[0],
       isSubscribed: false,
@@ -41,7 +43,7 @@ export async function getUserSubscriptionPlan() {
       dbUser.stripeCurrentPeriodEnd && // 86400000 = 1 day
       dbUser.stripeCurrentPeriodEnd.getTime() + 86_400_000 > Date.now()
   );
-
+  console.log("isSubscribed", isSubscribed)
   const plan = isSubscribed
     ? PLANS.find((plan) => plan.price.priceIds.test === dbUser.stripePriceId)
     : null;

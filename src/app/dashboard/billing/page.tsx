@@ -2,9 +2,9 @@ import BillingForm from "@/components/BillingForm"
 import { getUserSubscriptionPlan } from "@/lib/stripe"
 
 const Page = async () => {
-
-    const subscription = await getUserSubscriptionPlan()
-    return <BillingForm subscriptionPlan={subscription} />
+    const subscriptionPlan = await getUserSubscriptionPlan()
+    console.log("inside billing page",subscriptionPlan)
+    return <BillingForm subscriptionPlan={subscriptionPlan} /> 
 }
 
 export default Page
