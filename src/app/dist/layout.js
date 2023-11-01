@@ -20,7 +20,7 @@ function RootLayout(_a) {
         React.createElement(Providers_1["default"], null,
             React.createElement("body", { className: utils_1.cn('min-h-screen font-sans antialiased grainy', inter.className) },
                 React.createElement(toaster_1.Toaster, null),
-                React.createElement(Navabar_1.Navbar, null),
+                React.createElement(Navabar_1["default"], null),
                 children))));
 }
 exports["default"] = RootLayout;
