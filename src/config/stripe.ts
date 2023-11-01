@@ -1,8 +1,3 @@
-;
-
-// stripe config
-// Path: src/config/stripe.ts
-
 export const PLANS = [
   {
     name: "Free",
