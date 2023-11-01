@@ -9,7 +9,6 @@ import { Cloud, File, Loader2 } from "lucide-react";
 import { Progress } from "./ui/progress";
 import { useUploadThing } from "@/lib/uploadThing";
 import { useToast } from "./ui/use-toast";
-import { ro } from "date-fns/locale";
 import { trpc } from "@/app/_trpc/client";
 import { useRouter } from "next/navigation"
 const UploadDropZone = () => {

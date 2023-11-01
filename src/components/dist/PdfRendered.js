@@ -37,17 +37,19 @@ var PdfRenderer = function (_a) {
     var _d = react_resize_detector_1.useResizeDetector(), width = _d.width, ref = _d.ref;
     var _e = react_1.useState(1), scale = _e[0], setScale = _e[1];
     var _f = react_1.useState(0), rotate = _f[0], setRotate = _f[1];
+    var _g = react_1.useState(null), renderedScale = _g[0], setRenderedScale = _g[1];
+    var isLoading = renderedScale !== scale;
     var CustomPageValidator = zod_1.z.object({
-        page: zod_1.z.string().refine(function (num) {
-            return Number(num) > 0 && Number(num) <= numPages;
-        })
+        page: zod_1.z
+            .string()
+            .refine(function (num) { return Number(num) > 0 && Number(num) <= numPages; })
     });
-    var _g = react_hook_form_1.useForm({
+    var _h = react_hook_form_1.useForm({
         defaultValues: {
             page: "1"
         },
         resolver: zod_2.zodResolver(CustomPageValidator)
-    }), register = _g.register, handleSubmit = _g.handleSubmit, errors = _g.formState.errors, watch = _g.watch, setValue = _g.setValue;
+    }), register = _h.register, handleSubmit = _h.handleSubmit, errors = _h.formState.errors, watch = _h.watch, setValue = _h.setValue;
     var handlePageSubmit = function (_a) {
         var page = _a.page;
         setCurrPage(Number(page));
@@ -61,7 +63,7 @@ var PdfRenderer = function (_a) {
                     }, "aria-label": "previous page", variant: "ghost" },
                     React.createElement(lucide_react_1.ChevronDown, { className: "h-4 w-4" })),
                 React.createElement("div", { className: "flex items-center gap-1 5" },
-                    React.createElement(input_1.Input, __assign({}, register("page"), { className: utils_1.cn('w-12 h-8', errors.page && "focus-visible:ring-red-500"), onKeyDown: function (e) {
+                    React.createElement(input_1.Input, __assign({}, register("page"), { className: utils_1.cn("w-12 h-8", errors.page && "focus-visible:ring-red-500"), onKeyDown: function (e) {
                             if (e.key === "Enter") {
                                 console.log("enter");
                                 handleSubmit(handlePageSubmit)();
@@ -80,7 +82,7 @@ var PdfRenderer = function (_a) {
             React.createElement("div", { className: "space-x-2" },
                 React.createElement(dropdown_menu_1.DropdownMenu, null,
                     React.createElement(dropdown_menu_1.DropdownMenuTrigger, { asChild: true },
-                        React.createElement(button_1.Button, { className: 'gap-1.5', "aria-label": "Zoom", variant: 'ghost' },
+                        React.createElement(button_1.Button, { className: "gap-1.5", "aria-label": "Zoom", variant: "ghost" },
                             React.createElement(lucide_react_1.Search, { className: "h-4 w-4" }),
                             scale * 100,
                             "% ",
@@ -90,7 +92,7 @@ var PdfRenderer = function (_a) {
                         React.createElement(dropdown_menu_1.DropdownMenuItem, { onSelect: function () { return setScale(1.5); } }, "150%"),
                         React.createElement(dropdown_menu_1.DropdownMenuItem, { onSelect: function () { return setScale(2); } }, "200%"),
                         React.createElement(dropdown_menu_1.DropdownMenuItem, { onSelect: function () { return setScale(2.5); } }, "250%"))),
-                React.createElement(button_1.Button, { variant: 'ghost', "aria-label": "rotate 90 degrees", onClick: function () { return setRotate(function (prev) { return prev + 90; }); } },
+                React.createElement(button_1.Button, { variant: "ghost", "aria-label": "rotate 90 degrees", onClick: function () { return setRotate(function (prev) { return prev + 90; }); } },
                     React.createElement(lucide_react_1.RotateCw, { className: "h-4 w-4" })),
                 React.createElement(PdfFullscreen_1["default"], { fileUrl: url }))),
         React.createElement("div", { className: "flex-1 w-full max-h-screen" },
@@ -107,6 +109,8 @@ var PdfRenderer = function (_a) {
                             var numPages = _a.numPages;
                             return setNumPages(numPages);
                         }, file: url, className: "max-h-full" },
-                        React.createElement(react_pdf_1.Page, { pageNumber: currPage, width: width ? width : 1, scale: scale, rotate: rotate })))))));
+                        isLoading && renderedScale ? (React.createElement(react_pdf_1.Page, { pageNumber: currPage, width: width ? width : 1, scale: scale, rotate: rotate, key: "@" + renderedScale })) : null,
+                        React.createElement(react_pdf_1.Page, { className: utils_1.cn(isLoading ? "hidden" : ""), pageNumber: currPage, width: width ? width : 1, scale: scale, rotate: rotate, key: "@" + scale, loading: React.createElement("div", { className: "flex justify-center" },
+                                React.createElement(lucide_react_1.Loader2, { className: "my-24 h-6 w-6 animate-spin" })), onRenderSuccess: function () { return setRenderedScale(scale); } })))))));
 };
 exports["default"] = PdfRenderer;
