@@ -7,7 +7,12 @@ import Skeleton from 'react-loading-skeleton';
 import Link from 'next/link';
 import format from 'date-fns/format';
 import { Button } from './ui/button';
-const Dashboard: React.FC = () => {
+import { getUserSubscriptionPlan } from '@/lib/stripe';
+
+interface PageProps {
+    subscriptionPlan: Awaited<ReturnType<typeof getUserSubscriptionPlan>>
+}
+const Dashboard = ({ subscriptionPlan }: PageProps) => {
 
     const [currentlyDeletingFile, setCurrentlyDeletingFile] = React.useState<string | null>(null);
     const utils = trpc.useContext();
@@ -32,7 +37,7 @@ const Dashboard: React.FC = () => {
                     <h1 className='mb-3 font-bold text-5xl text-gray-900'>My Files</h1>
                 </div>
                 <div>
-                    <UploadButton />
+                    <UploadButton isSubscribed={subscriptionPlan.isSubscribed} />
                 </div>
             </div>
 
